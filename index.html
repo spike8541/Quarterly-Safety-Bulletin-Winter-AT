@@ -504,6 +504,40 @@
 .fs-btn{background:#fff;border:1.5px solid #ccc;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;color:#444;font-family:inherit}
 .fs-btn:hover{border-color:#B54A00;color:#B54A00}
 
+/* ---- phone layout ---- */
+#fsExit{display:none;position:absolute;top:8px;right:8px;z-index:40;background:rgba(0,0,0,.7);color:#fff;border:1.5px solid rgba(255,255,255,.6);border-radius:999px;padding:6px 12px;font-size:13px;font-family:inherit;cursor:pointer}
+#pw:fullscreen #fsExit,#pw.fakefs #fsExit{display:block}
+#pw.fakefs{position:fixed;inset:0;z-index:998;width:100%;height:100%;min-height:0;aspect-ratio:auto;margin:0;border-radius:0}
+body.nofs{overflow:hidden}
+@media (max-width:600px){
+  .header{padding:12px 14px 14px}
+  .header-logo{height:34px;margin-bottom:4px}
+  .header-title{font-size:18px}
+  .progress-bar{margin-top:10px;height:6px}
+  .progress-text{font-size:12px;margin-top:6px}
+  .header-controls{margin-top:8px}
+  .hdr-btn{padding:6px 14px;font-size:13px}
+  .container{padding:0 0 12px}
+  .card{padding:14px 0 16px !important;border-radius:0;box-shadow:none;margin-bottom:0}
+  #pageTitle{display:none}
+  #introText{padding:0 16px;margin-bottom:10px;text-align:left;font-size:15px}
+  #pw{margin:0 0 8px;border-radius:0;box-shadow:none;min-height:min(440px,72vh)}
+  .video-tools{padding:0 16px}
+  .fs-btn{padding:10px 16px;font-size:14px}
+  .safety-tip{margin:14px 16px 0}
+  .safety-tip p{text-align:left;font-size:14px}
+  .footer{padding:18px 14px;font-size:13px;margin-top:0}
+  .footer strong{font-size:14px}
+  #pw .cb{padding:13px 20px;min-height:46px}
+  .lang-card{padding:20px 18px}
+}
+/* phone turned sideways: the video takes over the whole screen */
+@media (orientation:landscape) and (max-height:500px){
+  #pw{position:fixed;inset:0;z-index:998;width:100%;height:100%;min-height:0;aspect-ratio:auto;margin:0;border-radius:0}
+  body{overflow:hidden}
+  .lang-gate{z-index:999}
+}
+
 </style>
 </head>
 <body>
@@ -539,6 +573,7 @@
     <div id="pw">
       <div id="v"></div>
       <div id="ov"><div class="vcard" id="oc"></div></div>
+      <button id="fsExit" onclick="toggleFs()" aria-label="Exit full screen">&#10005;</button>
     </div>
     <div class="video-tools"><span></span><button class="fs-btn" id="fsBtn" onclick="toggleFs()"></button></div>
     <div class="safety-tip"><div class="safety-tip-title" id="tipTitle"></div><p id="tipText" style="margin-bottom:0"></p></div>
@@ -780,7 +815,7 @@ function hmShow(e){
   var r=cRect();
   oc.style.cssText="position:absolute;left:"+r.l+"px;top:"+r.t+"px;width:"+r.w+"px;height:"+r.h+"px;max-width:none;background:transparent;padding:0;border:none;border-radius:0;max-height:none;overflow:visible";
   oc.innerHTML="";
-  var sp=hmSpots(e),need=e.hotspotMustAll!==false,n=0,hs=Number(e.hotspotSize)||48;
+  var sp=hmSpots(e),need=e.hotspotMustAll!==false,n=0,hs=Number(e.hotspotSize)||48;if(r.w<520)hs=Math.max(34,Math.min(hs,Math.round(r.w*0.11)));
   if(e.hotspotPrompt){var tp=document.createElement("div");tp.style.cssText="position:absolute;z-index:3;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:8px 16px;border-radius:10px;font-size:calc(14px*var(--fs));font-weight:600;max-width:90%;text-align:center;border:2px solid #F47B00;pointer-events:none";tp.textContent=e.hotspotPrompt;oc.appendChild(tp);}
   sp.forEach(function(q,i){
     var seen=!!hm.seen[i];if(seen)n++;
@@ -807,7 +842,7 @@ function hmOpen(e,i){
   oc.innerHTML="";
   var h=document.createElement("h2");h.style.cssText="font-size:calc(26px*var(--fs));font-weight:700;margin-bottom:18px;color:"+(e.hotspotMsgText||"#fff");h.textContent=q.t||q.l||"";
   var p=document.createElement("p");p.style.cssText="font-size:calc(16px*var(--fs));line-height:1.7;margin-bottom:28px;max-width:600px;white-space:pre-line;color:"+(e.hotspotMsgText||"#E2E8F0");p.textContent=q.b||"";
-  var bt=document.createElement("button");bt.className="cb";bt.style.maxWidth="240px";bt.textContent=T("back");bt.onclick=function(){hmShow(e);};
+  var bt=document.createElement("button");bt.className="cb";bt.style.maxWidth="240px";bt.textContent=T("back");bt.style.background="#fff";bt.style.color="#A33F00";bt.onclick=function(){hmShow(e);};
   oc.appendChild(h);oc.appendChild(p);oc.appendChild(bt);
 }
 function hsMsg(id){
@@ -846,14 +881,14 @@ var UI={
  en:{title:"Quarterly Safety Bulletin",native:"English",
      h1:"Quarterly Safety Bulletin",
      intro:"Watch the video below. It will pause at key moments &ndash; tap each orange dot to find out more, then press <strong>Continue</strong>.",
-     tip:"Tip",tipText:"Turn your sound on, and use the <strong>Full screen</strong> button below the video for the best view.",
+     tip:"Tip",tipText:"Turn your sound on. On a phone, turn it sideways or tap <strong>Full screen</strong> for a bigger view.",
      prog:"Activities completed: {n} of {t}",fs:"&#x26F6; Full screen",exitFs:"Exit full screen",
      cont:"Continue ▶",openAll:"Open all to continue",opened:"{n} of {t} opened",back:"◀ Back",
      footer:"<strong>Lieferando — Stay safe out there</strong><br>Emergency: Ambulance <strong>144</strong> · Police <strong>133</strong> · Fire <strong>122</strong> · European emergency number <strong>112</strong>"},
  de:{title:"Quartals-Sicherheitsbulletin",native:"Deutsch",
      h1:"Quartals-Sicherheitsbulletin",
      intro:"Schau dir das Video unten an. Es hält an wichtigen Stellen an &ndash; tippe auf jeden orangen Punkt, um mehr zu erfahren, und dann auf <strong>Weiter</strong>.",
-     tip:"Tipp",tipText:"Schalte den Ton ein und nutze den Button <strong>Vollbild</strong> unter dem Video für die beste Ansicht.",
+     tip:"Tipp",tipText:"Schalte den Ton ein. Am Handy: Dreh es quer oder tippe auf <strong>Vollbild</strong> für eine größere Ansicht.",
      prog:"Erledigte Aufgaben: {n} von {t}",fs:"&#x26F6; Vollbild",exitFs:"Vollbild beenden",
      cont:"Weiter ▶",openAll:"Alle öffnen, um weiterzumachen",opened:"{n} von {t} geöffnet",back:"◀ Zurück",
      footer:"<strong>Lieferando – Komm sicher an</strong><br>Notruf: Rettung <strong>144</strong> · Polizei <strong>133</strong> · Feuerwehr <strong>122</strong> · Euro-Notruf <strong>112</strong>"}
@@ -888,9 +923,9 @@ function pickLanguage(l){document.getElementById("langGate").classList.add("hidd
 function switchLanguage(l){if(l!==lang)startLang(l);}
 function toggleLangMenu(e){if(e)e.stopPropagation();var sw=document.getElementById("langSwitcher"),o=sw.classList.toggle("open");document.getElementById("langCurrent").setAttribute("aria-expanded",o?"true":"false");}
 document.addEventListener("click",function(){var sw=document.getElementById("langSwitcher");if(sw.classList.contains("open")){sw.classList.remove("open");document.getElementById("langCurrent").setAttribute("aria-expanded","false");}});
-function toggleFs(){if(document.fullscreenElement)document.exitFullscreen();else if(pw.requestFullscreen)pw.requestFullscreen();}
+function toggleFs(){if(document.fullscreenElement){document.exitFullscreen();return;}if(document.fullscreenEnabled&&pw.requestFullscreen&&!pw.classList.contains("fakefs")){pw.requestFullscreen();return;}var on=pw.classList.toggle("fakefs");document.body.classList.toggle("nofs",on);window.scrollTo(0,0);setTimeout(function(){window.dispatchEvent(new Event("resize"));},150);}
 document.addEventListener("fullscreenchange",function(){document.getElementById("fsBtn").innerHTML=document.fullscreenElement?T("exitFs"):T("fs");setTimeout(function(){window.dispatchEvent(new Event("resize"));},150);});
-if(!document.fullscreenEnabled)document.getElementById("fsBtn").style.display="none";
+window.addEventListener("orientationchange",function(){setTimeout(function(){window.dispatchEvent(new Event("resize"));},300);});
 
 document.getElementById("gateLogo").src=document.getElementById("headerLogo").src;
 applyChrome();updProg();
